@@ -49,4 +49,11 @@ class UserController extends Controller
             }
         }
     }
+
+    public function logout()
+    {
+        session_start();
+        session_destroy();
+        $this->redirect('/To-do-listAgressive/view/forms/formAuthorization.php');
+    }
 }

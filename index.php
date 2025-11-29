@@ -9,6 +9,8 @@ if ($action === 'register') {
     $controller->registration();
 } elseif ($action === 'login') {
     $controller->authorization();
+} elseif ($action === 'logout') {
+    $controller->logout();
 } else {
     header("Location: /To-do-listAgressive/view/forms/formAuthorization.php");
     exit();
