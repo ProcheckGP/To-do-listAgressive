@@ -17,7 +17,7 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 <div class="menu-bottom">
                     <h4><?php echo $_SESSION['username']; ?></h4>
-                    <a href="/To-do-listAgressive/index.php?action=logout">Выйти</a>
+                    <a href="/To-do-listAgressive/router.php?action=logout">Выйти</a>
                 </div>
             </div>
             <div class="col-10 right-half">

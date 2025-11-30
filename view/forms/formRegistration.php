@@ -6,7 +6,7 @@ session_start();
 <div class="container text-center form-registration">
     <h1>Register your account</h1>
 
-    <form method="POST" action="/To-do-listAgressive/index.php?action=register">
+    <form method="POST" action="/To-do-listAgressive/router.php?action=register">
         <div class="container">
             <div class="form-group">
                 <label for="username">Enter your username</label>

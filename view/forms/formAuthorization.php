@@ -2,7 +2,7 @@
 
 <div class="container text-center form-authorization">
     <h1>Log in to your account</h1>
-    <form method="POST" action="/To-do-listAgressive/index.php?action=login">
+    <form method="POST" action="/To-do-listAgressive/router.php?action=login">
         <div class="form-group">
             <label for="email">Enter your email</label>
             <input type="email" class="form-control" id="email" name="email">

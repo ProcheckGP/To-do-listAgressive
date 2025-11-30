@@ -24,7 +24,7 @@ class UserController extends Controller
                         $_POST['password'],
                         $_POST['email']
                     );
-                    $this->redirect('/To-do-listAgressive/view/forms/formAuthorization.php');
+                    $this->redirect('/To-do-listAgressive/index.php');
                 } else {
                     $this->redirect('/To-do-listAgressive/view/forms/formRegistration.php');
                 }
@@ -54,6 +54,6 @@ class UserController extends Controller
     {
         session_start();
         session_destroy();
-        $this->redirect('/To-do-listAgressive/view/forms/formAuthorization.php');
+        $this->redirect('/To-do-listAgressive/index.php');
     }
 }
