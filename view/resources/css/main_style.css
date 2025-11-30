@@ -53,22 +53,46 @@ body {
 }
 
 .left-half {
-    border-right: 2px solid black;
+    border-right: 1px solid black;
+    box-shadow: 0 0 2rem 0 rgb(0, 0, 0);
     height: 100vh;
     display: flex;
     flex-direction: column;
     position: relative;
+    background-color: rgb(252, 188, 85);
 }
 
 .menu-top {
     flex: 1;
-    padding: 15px;
+    padding: 10px;
 }
 
 .menu-bottom {
-    border-top: 2px solid black;
-    padding: 15px;
-    background-color: #f8f9fa;
+    display: flex;
+    background-color: #f8f9fa00;
+    align-items: flex-end;
+}
+
+.menu-bottom .row {
+    width: 100%;
+    align-items: flex-end;
+}
+
+.menu-bottom .col-4 {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 16px;
+}
+
+.menu-bottom .col-8 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu-bottom a:hover {
+    color: #1a05a2a4;
 }
 
 .row {
