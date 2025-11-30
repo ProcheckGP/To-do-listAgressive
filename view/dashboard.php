@@ -26,5 +26,3 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </section>
 </body>
-
-<?php require __DIR__ . '/layout/footer.php'; ?>

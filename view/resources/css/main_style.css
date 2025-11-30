@@ -1,18 +1,26 @@
+body {
+    background-color: rgb(255, 232, 194);
+}
+
+.title-site {
+    margin-top: 20px;
+}
+
+.title-site img {
+    margin-top: 20px;
+}
+
 .form-authorization {
-    margin-top: 200px;
+    margin-top: 50px;
     border: 2px solid black;
     border-radius: 20px;
     width: 500px;
     margin-left: auto;
     margin-right: auto;
-}
-
-.form-authorization a {
-    text-decoration: none;
 }
 
 .form-registration {
-    margin-top: 150px;
+    margin-top: 50px;
     border: 2px solid black;
     border-radius: 20px;
     width: 500px;
@@ -20,8 +28,28 @@
     margin-right: auto;
 }
 
-.form-registration a {
-    text-decoration: none;
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-group a {
+    font-size: 10px;
+}
+
+.form-control {
+    width: 300px;
+}
+
+.form-control:hover {
+    border-color: rgb(0, 0, 0);
+    box-shadow: 0 0 0 0.2rem rgba(160, 160, 160, 0.61);
+}
+
+.form-control:focus {
+    border-color: rgb(0, 0, 0);
+    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.61);
 }
 
 .left-half {
@@ -50,4 +78,21 @@
 a {
     text-decoration: none;
     color: black;
+}
+
+a:hover {
+    color: #1a05a2a4;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 15px 0;
+}
+
+footer .container {
+    display: flex;
+    justify-content: end;
+    gap: 10px;
 }

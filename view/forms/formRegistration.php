@@ -3,6 +3,11 @@ session_start();
 ?>
 <?php require __DIR__ . '/../layout/header.php'; ?>
 
+<div class="container text-center title-site">
+    <h1>To-do-listAgressive</h1>
+    <img src="/To-do-listAgressive/view/resources/image/devil.png" alt="#" height="100" width="100">
+</div>
+
 <div class="container text-center form-registration">
     <h1>Register your account</h1>
 
@@ -24,8 +29,10 @@ session_start();
             </div>
             <br>
             <div class="form-group">
-                <button type="submit" class="form-control">Register</button>
-                <a href="/To-do-listAgressive/view/forms/formAuthorization.php">Do you already have an account?</a>
+                <div class="row">
+                    <button type="submit" class="btn btn-outline-dark">Register</button>
+                    <a href="/To-do-listAgressive/view/forms/formAuthorization.php">Do you already have an account?</a>
+                </div>
             </div>
         </div>
     </form>
