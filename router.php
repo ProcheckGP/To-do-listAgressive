@@ -11,6 +11,18 @@ if ($action === 'register') {
     $controller->authorization();
 } elseif ($action === 'logout') {
     $controller->logout();
+} elseif ($action === 'dashboard') {
+    $controller->dashboard();
+} elseif ($action === 'create_task') {
+    $controller->createTask();
+} elseif ($action === 'update_task') {
+    $controller->updateTask();
+} elseif ($action === 'toggle_task') {
+    $controller->toggleTask();
+} elseif ($action === 'get_task') {
+    $controller->getTask();
+} elseif ($action === 'delete_task') {
+    $controller->deleteTask();
 } else {
     header("Location: /To-do-listAgressive/index.php");
     exit();

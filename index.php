@@ -1,2 +1,2 @@
 <?php
-header("Location: view/forms/formAuthorization.php");
+header("Location: /To-do-listAgressive/router.php?action=dashboard");
