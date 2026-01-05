@@ -19,16 +19,27 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
         <div class="row">
             <div class="col-2 left-half">
                 <div class="menu-top">
-                    <button class="btn btn-outline-dark w-100 mb-2" onclick="loadAllTasks()">Все задачи</button>
+                    <button class="btn btn-outline-dark w-100 mb-3" onclick="loadAllTasks()">
+                        <strong>Все задачи</strong>
+                    </button>
+                    <button class="btn btn-outline-dark w-100 mb-3" onclick="filterTasks('active')">
+                        <strong>Активные</strong>
+                    </button>
+                    <button class="btn btn-outline-dark w-100 mb-3" onclick="filterTasks('completed')">
+                        <strong>Завершённые</strong>
+                    </button>
                 </div>
                 <div class="menu-bottom">
-                    <div class="row">
+                    <div class="row align-items-center">
                         <div class="col-8 text-center">
-                            <img src="/To-do-listAgressive/view/resources/image/user.png" alt="" height="40px">
-                            <p><?php echo htmlspecialchars($_SESSION['username']); ?></p>
+                            <img src="/To-do-listAgressive/view/resources/image/user.png" alt="User" height="50px" width="50px" class="mb-2">
+                            <p class="mb-0"><strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong></p>
+                            <small class="text-muted">Пользователь</small>
                         </div>
-                        <div class="col-4">
-                            <a href="/To-do-listAgressive/router.php?action=logout">Выйти</a>
+                        <div class="col-4 text-center">
+                            <a href="/To-do-listAgressive/router.php?action=logout" class="btn btn-sm btn-outline-dark">
+                                Выйти
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -101,12 +112,12 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                             <input type="text" class="form-control" id="task-name" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="task-description" class="form-label">Описание</label>
-                            <textarea class="form-control" id="task-description" name="description" rows="3"></textarea>
+                            <label for="task-description" class="form-label">Описание *</label>
+                            <textarea class="form-control" id="task-description" name="description" rows="3" required></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="task-timer" class="form-label">Таймер выполнения</label>
-                            <input type="datetime-local" class="form-control" id="task-timer" name="timer">
+                            <label for="task-timer" class="form-label">Таймер выполнения *</label>
+                            <input type="datetime-local" class="form-control" id="task-timer" name="timer" required>
                         </div>
                     </form>
                 </div>
@@ -133,12 +144,12 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                             <input type="text" class="form-control" id="edit-task-name" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit-task-description" class="form-label">Описание</label>
-                            <textarea class="form-control" id="edit-task-description" name="description" rows="3"></textarea>
+                            <label for="edit-task-description" class="form-label">Описание *</label>
+                            <textarea class="form-control" id="edit-task-description" name="description" rows="3" required></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="edit-task-timer" class="form-label">Таймер выполнения</label>
-                            <input type="datetime-local" class="form-control" id="edit-task-timer" name="timer">
+                            <label for="edit-task-timer" class="form-label">Таймер выполнения *</label>
+                            <input type="datetime-local" class="form-control" id="edit-task-timer" name="timer" required>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="edit-task-completed" name="is_completed">
@@ -158,6 +169,25 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
     <script>
         function loadAllTasks() {
             location.reload();
+        }
+
+        function filterTasks(status) {
+            const tasks = document.querySelectorAll('.task-item');
+            tasks.forEach(task => {
+                const isCompleted = task.querySelector('.form-check-input').checked;
+                if (status === 'active') {
+                    task.style.display = !isCompleted ? 'block' : 'none';
+                } else if (status === 'completed') {
+                    task.style.display = isCompleted ? 'block' : 'none';
+                }
+            });
+
+            const count = document.querySelectorAll('.task-item[style*="display: block"]').length;
+            document.querySelector('h3').textContent = status === 'active' ?
+                `Активные задачи (${count})` :
+                status === 'completed' ?
+                `Завершённые задачи (${count})` :
+                `Мои задачи (${count})`;
         }
 
         function openCreateModal() {
@@ -202,8 +232,21 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
             const formData = new FormData(document.getElementById('create-task-form'));
 
             const taskName = document.getElementById('task-name').value.trim();
+            const taskDescription = document.getElementById('task-description').value.trim();
+            const taskTimer = document.getElementById('task-timer').value;
+
             if (!taskName) {
                 alert('Пожалуйста, введите название задачи');
+                return;
+            }
+
+            if (!taskDescription) {
+                alert('Пожалуйста, введите описание задачи');
+                return;
+            }
+
+            if (!taskTimer) {
+                alert('Пожалуйста, укажите таймер выполнения');
                 return;
             }
 
@@ -231,8 +274,21 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
             const formData = new FormData(document.getElementById('edit-task-form'));
 
             const taskName = document.getElementById('edit-task-name').value.trim();
+            const taskDescription = document.getElementById('edit-task-description').value.trim();
+            const taskTimer = document.getElementById('edit-task-timer').value;
+
             if (!taskName) {
                 alert('Пожалуйста, введите название задачи');
+                return;
+            }
+
+            if (!taskDescription) {
+                alert('Пожалуйста, введите описание задачи');
+                return;
+            }
+
+            if (!taskTimer) {
+                alert('Пожалуйста, укажите таймер выполнения');
                 return;
             }
 

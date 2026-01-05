@@ -1,5 +1,22 @@
 body {
     background-color: rgb(255, 232, 194);
+    background-image: url('/To-do-listAgressive/view/resources/image/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    filter: blur(10px);
+    z-index: -1;
 }
 
 .title-site {
@@ -12,20 +29,26 @@ body {
 
 .form-authorization {
     margin-top: 50px;
-    border: 2px solid black;
+    border: 2px solid rgba(0, 0, 0, 0.7);
     border-radius: 20px;
     width: 500px;
     margin-left: auto;
     margin-right: auto;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    padding: 30px;
 }
 
 .form-registration {
     margin-top: 50px;
-    border: 2px solid black;
+    border: 2px solid rgba(0, 0, 0, 0.7);
     border-radius: 20px;
     width: 500px;
     margin-left: auto;
     margin-right: auto;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    padding: 30px;
 }
 
 .form-group {
@@ -35,11 +58,16 @@ body {
 }
 
 .form-group a {
-    font-size: 10px;
+    font-size: 12px;
+    margin-top: 10px;
 }
 
 .form-control {
     width: 300px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .form-control:hover {
@@ -50,16 +78,22 @@ body {
 .form-control:focus {
     border-color: rgb(0, 0, 0);
     box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.61);
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
 .left-half {
     border-right: 1px solid black;
-    box-shadow: 0 0 2rem 0 rgb(0, 0, 0);
-    height: 100vh;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    min-height: 100vh;
+    height: auto;
     display: flex;
     flex-direction: column;
-    position: relative;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 16.666667%;
     background-color: rgb(252, 188, 85);
+    z-index: 1000;
 }
 
 .menu-top {
@@ -121,6 +155,19 @@ footer .container {
     gap: 10px;
 }
 
+.right-half {
+    margin-left: 16.666667%;
+    width: 83.333333%;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: rgb(255, 232, 194);
+    background-image: url('/To-do-listAgressive/view/resources/image/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
 .task-item {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -173,4 +220,39 @@ footer .container {
 
 .form-check-input:checked:focus {
     box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+}
+
+.invalid-feedback {
+    display: block;
+    width: 300px;
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #dc3545;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.alert-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    width: 90%;
+    max-width: 500px;
+}
+
+.alert {
+    border: 2px solid #dc3545;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
 }
