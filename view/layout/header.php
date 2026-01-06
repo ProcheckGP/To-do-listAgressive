@@ -7,6 +7,7 @@
     <title>To-Do-ListAgressive</title>
     <link rel="stylesheet" href="/To-do-listAgressive/view/resources/css/bootstrap.min.css">
     <link rel="stylesheet" href="/To-do-listAgressive/view/resources/css/main_style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 </head>
 
 <body>

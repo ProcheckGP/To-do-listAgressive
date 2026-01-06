@@ -8,16 +8,90 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+date_default_timezone_set('Europe/Moscow');
+
 require_once __DIR__ . '/../server/database.php';
 require_once __DIR__ . '/../model/TaskModel.php';
 
 $taskModel = new TaskModel();
 $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
+
+$now = time();
+$currentDate = date('Y-m-d', $now);
 ?>
 
 <?php require __DIR__ . '/layout/header.php'; ?>
 
 <body>
+    <?php
+    $overdueTasks = [];
+
+    foreach ($tasks as $task) {
+        if (!$task['is_completed'] && $task['timer']) {
+            $taskTime = strtotime($task['timer']);
+            $diff = $taskTime - $now;
+
+            if ($diff < 0) {
+                $overdueTasks[] = $task;
+            }
+        }
+    }
+
+    if (!empty($overdueTasks)):
+        $messages = [
+            "Ты ЛОХ ЦВЕТОЧНЫЙ, даже задачу выполнить не можешь!",
+            "Чё сидишь? Задницу оторвал бы уже и сделал!",
+            "Неужели так сложно просто выполнить задачу?",
+            "Опять откладываешь? Соберись, тряпка!",
+            "Просрочил! Теперь вся команда знает, что ты ненадёжный!",
+            "Задачи плачут, пока ты бездельничаешь!",
+            "Выполни задачу или признай, что ты слабак!",
+            "Сидишь как овощ, а задачи горят!",
+            "Не будь лузером - закрой задачу!",
+            "Твоя продуктивность на нуле! Исправься!"
+        ];
+        $randomMessage = $messages[array_rand($messages)];
+        $randomTask = $overdueTasks[array_rand($overdueTasks)];
+    ?>
+        <div class="modal fade show" id="motivationModal" tabindex="-1" style="display: block;" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-exclamation-triangle-fill"></i> ВНИМАНИЕ!
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" onclick="closeMotivation()"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-emoji-dizzy display-1 text-danger"></i>
+                            <h3 class="mt-3"><?php echo $randomMessage; ?></h3>
+                            <p class="lead">"<?php echo htmlspecialchars($randomTask['name']); ?>"</p>
+                            <p class="text-muted">
+                                Просрочено с <?php echo date('d.m.Y H:i', strtotime($randomTask['timer'])); ?>
+                            </p>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-info-circle"></i>
+                            Всего просрочено задач: <strong><?php echo count($overdueTasks); ?></strong>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-danger" onclick="openEditModal(<?php echo $randomTask['id']; ?>); closeMotivation();">
+                                <i class="bi bi-check-circle"></i> Выполнить сейчас!
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="closeMotivation()">
+                                <i class="bi bi-x-circle"></i> Закрыть (но ты всё равно лох!)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    <?php endif; ?>
+
     <section>
         <div class="row">
             <div class="col-2 left-half">
@@ -71,9 +145,35 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                                                 <?php if (!empty($task['description'])): ?>
                                                     <p class="card-text mb-1"><?php echo htmlspecialchars($task['description']); ?></p>
                                                 <?php endif; ?>
-                                                <?php if ($task['timer']): ?>
-                                                    <small class="text-muted">
-                                                        До: <?php echo date('d.m.Y H:i', strtotime($task['timer'])); ?>
+                                                <?php if ($task['timer']):
+                                                    $timer = strtotime($task['timer']);
+                                                    $now = time();
+                                                    $diff = $timer - $now;
+                                                    $days = floor($diff / (60 * 60 * 24));
+                                                    $hours = floor(($diff % (60 * 60 * 24)) / (60 * 60));
+
+                                                    if ($diff < 0) {
+                                                        $timeClass = 'text-danger';
+                                                        $timeIcon = 'bi-exclamation-triangle';
+                                                        $timeText = 'Просрочено';
+                                                    } elseif ($diff < 24 * 60 * 60) {
+                                                        $timeClass = 'text-warning';
+                                                        $timeIcon = 'bi-clock';
+                                                        $timeText = $hours . ' ч';
+                                                    } elseif ($diff < 3 * 24 * 60 * 60) {
+                                                        $timeClass = 'text-info';
+                                                        $timeIcon = 'bi-calendar-day';
+                                                        $timeText = $days . ' дн';
+                                                    } else {
+                                                        $timeClass = 'text-success';
+                                                        $timeIcon = 'bi-calendar-check';
+                                                        $timeText = $days . ' дн';
+                                                    }
+                                                ?>
+                                                    <small class="<?php echo $timeClass; ?>">
+                                                        <i class="bi <?php echo $timeIcon; ?>"></i>
+                                                        <?php echo $timeText; ?> •
+                                                        До: <?php echo date('d.m.Y H:i', $timer); ?>
                                                     </small>
                                                 <?php endif; ?>
                                             </div>
@@ -118,9 +218,52 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                             <label for="task-description" class="form-label">Описание *</label>
                             <textarea class="form-control" id="task-description" name="description" rows="3" required></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="task-timer" class="form-label">Таймер выполнения *</label>
-                            <input type="datetime-local" class="form-control" id="task-timer" name="timer" required>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Срок выполнения</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="task-date" class="form-label">Дата *</label>
+                                        <input type="date" class="form-control" id="task-date" name="date" required
+                                            min="<?php echo date('Y-m-d'); ?>">
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="task-time" class="form-label">Время *</label>
+                                        <input type="time" class="form-control" id="task-time" name="time" value="23:59" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Быстрый выбор:</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('today', 'create')">
+                                            Сегодня 23:59
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('tomorrow', 'create')">
+                                            Завтра 23:59
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('week', 'create')">
+                                            Через неделю
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('month', 'create')">
+                                            Через месяц
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="task-timer" name="timer">
+
+                                <div class="alert alert-info mb-0">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i>
+                                        Задача будет выделена цветом, если срок близок к истечению.
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -150,10 +293,54 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                             <label for="edit-task-description" class="form-label">Описание *</label>
                             <textarea class="form-control" id="edit-task-description" name="description" rows="3" required></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit-task-timer" class="form-label">Таймер выполнения *</label>
-                            <input type="datetime-local" class="form-control" id="edit-task-timer" name="timer" required>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Срок выполнения</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="edit-task-date" class="form-label">Дата *</label>
+                                        <input type="date" class="form-control" id="edit-task-date" name="date" required
+                                            min="<?php echo date('Y-m-d'); ?>">
+                                    </div>
+                                    <p></p>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="edit-task-time" class="form-label">Время *</label>
+                                        <input type="time" class="form-control" id="edit-task-time" name="time" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Быстрый выбор:</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('today', 'edit')">
+                                            Сегодня 23:59
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('tomorrow', 'edit')">
+                                            Завтра 23:59
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('week', 'edit')">
+                                            Через неделю
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDeadline('month', 'edit')">
+                                            Через месяц
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="edit-task-timer" name="timer">
+
+                                <div class="alert alert-info mb-0">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i>
+                                        Задача будет выделена цветом, если срок близок к истечению.
+                                    </small>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="edit-task-completed" name="is_completed">
                             <label class="form-check-label" for="edit-task-completed">Задача выполнена</label>
@@ -161,7 +348,7 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-dark" onclick="deleteTask()">Удалить</button>
+                    <button type="button" class="btn btn-outline-danger" onclick="deleteTask()">Удалить</button>
                     <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Отмена</button>
                     <button type="button" class="btn btn-outline-dark" onclick="updateTask()">Сохранить</button>
                 </div>
@@ -193,8 +380,51 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                 `Мои задачи (${count})`;
         }
 
+        function setDeadline(preset, formType) {
+            const now = new Date();
+            let date = new Date();
+
+            switch (preset) {
+                case 'today':
+                    date.setHours(23, 59, 0, 0);
+                    break;
+                case 'tomorrow':
+                    date.setDate(date.getDate() + 1);
+                    date.setHours(23, 59, 0, 0);
+                    break;
+                case 'week':
+                    date.setDate(date.getDate() + 7);
+                    date.setHours(23, 59, 0, 0);
+                    break;
+                case 'month':
+                    date.setMonth(date.getMonth() + 1);
+                    date.setHours(23, 59, 0, 0);
+                    break;
+            }
+
+            const dateStr = date.toISOString().split('T')[0];
+            const timeStr = date.toTimeString().slice(0, 5);
+
+            if (formType === 'create') {
+                document.getElementById('task-date').value = dateStr;
+                document.getElementById('task-time').value = timeStr;
+            } else if (formType === 'edit') {
+                document.getElementById('edit-task-date').value = dateStr;
+                document.getElementById('edit-task-time').value = timeStr;
+            }
+        }
+
         function openCreateModal() {
             document.getElementById('create-task-form').reset();
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(23, 59, 0, 0);
+
+            document.getElementById('task-date').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('task-time').value = '23:59';
+            document.getElementById('task-date').min = new Date().toISOString().split('T')[0];
+
             const modal = new bootstrap.Modal(document.getElementById('createTaskModal'));
             modal.show();
         }
@@ -211,10 +441,19 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
 
                         if (task.timer) {
                             const timerDate = new Date(task.timer);
-                            const formattedTimer = timerDate.toISOString().slice(0, 16);
-                            document.getElementById('edit-task-timer').value = formattedTimer;
+                            const dateStr = timerDate.toISOString().split('T')[0];
+                            const timeStr = timerDate.toTimeString().slice(0, 5);
+
+                            document.getElementById('edit-task-date').value = dateStr;
+                            document.getElementById('edit-task-time').value = timeStr;
+                            document.getElementById('edit-task-timer').value = task.timer;
                         } else {
-                            document.getElementById('edit-task-timer').value = '';
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            tomorrow.setHours(23, 59, 0, 0);
+
+                            document.getElementById('edit-task-date').value = tomorrow.toISOString().split('T')[0];
+                            document.getElementById('edit-task-time').value = '23:59';
                         }
 
                         document.getElementById('edit-task-completed').checked = task.is_completed == 1;
@@ -232,11 +471,21 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
         }
 
         function createTask() {
+            const date = document.getElementById('task-date').value;
+            const time = document.getElementById('task-time').value;
+
+            if (!date || !time) {
+                alert('Пожалуйста, укажите дату и время выполнения');
+                return;
+            }
+
+            const timer = date + ' ' + time + ':00';
+            document.getElementById('task-timer').value = timer;
+
             const formData = new FormData(document.getElementById('create-task-form'));
 
             const taskName = document.getElementById('task-name').value.trim();
             const taskDescription = document.getElementById('task-description').value.trim();
-            const taskTimer = document.getElementById('task-timer').value;
 
             if (!taskName) {
                 alert('Пожалуйста, введите название задачи');
@@ -245,11 +494,6 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
 
             if (!taskDescription) {
                 alert('Пожалуйста, введите описание задачи');
-                return;
-            }
-
-            if (!taskTimer) {
-                alert('Пожалуйста, укажите таймер выполнения');
                 return;
             }
 
@@ -274,11 +518,21 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
         }
 
         function updateTask() {
+            const date = document.getElementById('edit-task-date').value;
+            const time = document.getElementById('edit-task-time').value;
+
+            if (!date || !time) {
+                alert('Пожалуйста, укажите дату и время выполнения');
+                return;
+            }
+
+            const timer = date + ' ' + time + ':00';
+            document.getElementById('edit-task-timer').value = timer;
+
             const formData = new FormData(document.getElementById('edit-task-form'));
 
             const taskName = document.getElementById('edit-task-name').value.trim();
             const taskDescription = document.getElementById('edit-task-description').value.trim();
-            const taskTimer = document.getElementById('edit-task-timer').value;
 
             if (!taskName) {
                 alert('Пожалуйста, введите название задачи');
@@ -287,11 +541,6 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
 
             if (!taskDescription) {
                 alert('Пожалуйста, введите описание задачи');
-                return;
-            }
-
-            if (!taskTimer) {
-                alert('Пожалуйста, укажите таймер выполнения');
                 return;
             }
 
@@ -326,6 +575,7 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        closeMotivation();
                         location.reload();
                     } else {
                         alert('Ошибка обновления статуса задачи');
@@ -375,6 +625,32 @@ $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
                 });
             }
         });
+
+        function hideMotivation() {
+            document.querySelector('#motivationModal').style.display = 'none';
+            document.querySelector('.modal-backdrop').style.display = 'none';
+
+            const date = new Date();
+            date.setTime(date.getTime() + (24 * 60 * 60 * 1000));
+            document.cookie = "hide_motivation=true; expires=" + date.toUTCString() + "; path=/";
+        }
+
+        function showMotivation() {
+            document.cookie = "hide_motivation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            location.reload();
+        }
+
+        function closeMotivation() {
+            const modal = document.querySelector('#motivationModal');
+            const backdrop = document.querySelector('.modal-backdrop');
+
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            if (backdrop) {
+                backdrop.style.display = 'none';
+            }
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
