@@ -1,6 +1,3 @@
-<?php
-session_start();
-?>
 <?php require __DIR__ . '/../layout/header.php'; ?>
 
 <div class="container text-center title-site">

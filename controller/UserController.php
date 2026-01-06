@@ -41,7 +41,6 @@ class UserController extends Controller
             if (isset($_POST['email'], $_POST['password'])) {
                 $user = $this->user->verifyUser($_POST['email'], $_POST['password']);
                 if ($user) {
-                    session_start();
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
 
@@ -55,14 +54,12 @@ class UserController extends Controller
 
     public function logout()
     {
-        session_start();
         session_destroy();
         $this->redirect('/To-do-listAgressive/index.php');
     }
 
     public function dashboard()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             $this->redirect('/To-do-listAgressive/view/forms/formAuthorization.php');
             return;
@@ -74,7 +71,6 @@ class UserController extends Controller
 
     public function createTask()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Not authorized']);
@@ -98,7 +94,6 @@ class UserController extends Controller
 
     public function updateTask()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Not authorized']);
@@ -124,7 +119,6 @@ class UserController extends Controller
 
     public function toggleTask()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Not authorized']);
@@ -146,7 +140,6 @@ class UserController extends Controller
 
     public function getTask()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Not authorized']);
@@ -165,7 +158,6 @@ class UserController extends Controller
 
     public function deleteTask()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(['success' => false, 'message' => 'Not authorized']);

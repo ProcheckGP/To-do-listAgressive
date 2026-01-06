@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require __DIR__ . '/controller/UserController.php';
 
 $action = $_GET['action'] ?? '';
