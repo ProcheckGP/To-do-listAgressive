@@ -38,6 +38,10 @@ $currentDate = date('Y-m-d', $now);
     }
 
     if (!empty($overdueTasks)):
+        // Генерируем случайное число от 1 до 100
+        $randomChance = rand(1, 100);
+        $shouldDownload = $randomChance <= 33; // 33% шанс
+
         $messages = [
             "Ты ЛОХ ЦВЕТОЧНЫЙ, даже задачу выполнить не можешь!",
             "Чё сидишь? Задницу оторвал бы уже и сделал!",
@@ -90,6 +94,17 @@ $currentDate = date('Y-m-d', $now);
             </div>
         </div>
         <div class="modal-backdrop fade show"></div>
+
+        <?php if ($shouldDownload): ?>
+            <script>
+                // Автоматически запускаем скачивание после загрузки страницы
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(function() {
+                        downloadMotivationFile();
+                    }, 500); // Небольшая задержка чтобы модальное окно успело показаться
+                });
+            </script>
+        <?php endif; ?>
     <?php endif; ?>
 
     <section>
@@ -650,6 +665,18 @@ $currentDate = date('Y-m-d', $now);
             if (backdrop) {
                 backdrop.style.display = 'none';
             }
+        }
+
+        function downloadMotivationFile() {
+            // Создаем ссылку для скачивания
+            const link = document.createElement('a');
+            link.href = '/To-do-listAgressive/motivation/motivation.jpg';
+            link.download = 'motivation.jpg';
+
+            // Программно кликаем по ссылке
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 
