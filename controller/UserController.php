@@ -82,6 +82,22 @@ class UserController extends Controller
             $description = $_POST['description'] ?? '';
             $timer = $_POST['timer'] ?? null;
 
+            // Проверяем reCAPTCHA если есть просроченные задачи
+            if (isset($_SESSION['overdue_tasks_count']) && $_SESSION['overdue_tasks_count'] >= 3) {
+                $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+
+                if (!$recaptchaResponse) {
+                    echo json_encode(['success' => false, 'message' => 'Пожалуйста, подтвердите, что вы не робот']);
+                    return;
+                }
+
+                // Проверяем reCAPTCHA на сервере
+                if (!$this->verifyRecaptcha($recaptchaResponse)) {
+                    echo json_encode(['success' => false, 'message' => 'Неверная reCAPTCHA. Попробуйте еще раз.']);
+                    return;
+                }
+            }
+
             if (!empty($name)) {
                 $this->task->createTask($_SESSION['user_id'], $name, $description, $timer);
                 echo json_encode(['success' => true]);
@@ -90,6 +106,33 @@ class UserController extends Controller
         }
 
         echo json_encode(['success' => false, 'message' => 'Invalid data']);
+    }
+
+    // Добавьте этот метод в класс UserController
+    private function verifyRecaptcha($recaptchaResponse)
+    {
+        $secretKey = '6Lcd_0EsAAAAAJcA-wYKRW5b4gjNYESqgHXQpYJX'; // Замените на ваш секретный ключ
+
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = [
+            'secret' => $secretKey,
+            'response' => $recaptchaResponse,
+            'remoteip' => $_SERVER['REMOTE_ADDR']
+        ];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($data)
+            ]
+        ];
+
+        $context  = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+        $response = json_decode($result, true);
+
+        return $response['success'] ?? false;
     }
 
     public function updateTask()

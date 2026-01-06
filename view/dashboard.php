@@ -16,7 +16,21 @@ require_once __DIR__ . '/../model/TaskModel.php';
 $taskModel = new TaskModel();
 $tasks = $taskModel->getUserTasks($_SESSION['user_id']);
 
+// Подсчет просроченных задач
+$overdueCount = 0;
 $now = time();
+foreach ($tasks as $task) {
+    if (!$task['is_completed'] && $task['timer']) {
+        $taskTime = strtotime($task['timer']);
+        if ($taskTime < $now) {
+            $overdueCount++;
+        }
+    }
+}
+
+// Сохраняем в сессию для использования в других частях приложения
+$_SESSION['overdue_tasks_count'] = $overdueCount;
+
 $currentDate = date('Y-m-d', $now);
 ?>
 
@@ -280,11 +294,22 @@ $currentDate = date('Y-m-d', $now);
                                 </div>
                             </div>
                         </div>
+                        <div id="captcha-container" class="mb-3" style="display: none;">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-shield-exclamation"></i>
+                                <strong>Внимание!</strong> У вас много просроченных задач.
+                                Пожалуйста, подтвердите, что вы не робот.
+                            </div>
+                            <div class="g-recaptcha" id="g-recaptcha-create"></div>
+                            <div id="captcha-error" class="text-danger small mt-1" style="display: none;">
+                                Пожалуйста, подтвердите, что вы не робот.
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-outline-dark" onclick="createTask()">Создать</button>
+                    <button type="button" class="btn btn-outline-dark" onclick="createTask()" id="create-task-btn">Создать</button>
                 </div>
             </div>
         </div>
@@ -681,4 +706,143 @@ $currentDate = date('Y-m-d', $now);
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Функция для загрузки reCAPTCHA (только при необходимости)
+        function loadRecaptchaIfNeeded() {
+            const overdueCount = <?php echo $overdueCount; ?>;
+
+            if (overdueCount >= 3) {
+                // Показываем контейнер для reCAPTCHA
+                document.getElementById('captcha-container').style.display = 'block';
+
+                // Динамически загружаем скрипт reCAPTCHA если он еще не загружен
+                if (!document.querySelector('script[src*="recaptcha"]')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.google.com/recaptcha/api.js?render=explicit&hl=ru';
+                    document.body.appendChild(script);
+                }
+
+                // Инициализируем reCAPTCHA после загрузки библиотеки
+                setTimeout(() => {
+                    if (typeof grecaptcha !== 'undefined' && !window.recaptchaCreateWidget) {
+                        window.recaptchaCreateWidget = grecaptcha.render('g-recaptcha-create', {
+                            'sitekey': '6Lcd_0EsAAAAABbK4qiqzG9iOJRKQG8wcm4yWOy4', // Замените на ваш ключ
+                            'theme': 'light'
+                        });
+                    }
+                }, 1000);
+            }
+        }
+
+        // Модифицируем функцию openCreateModal()
+        function openCreateModal() {
+            document.getElementById('create-task-form').reset();
+
+            // Скрываем reCAPTCHA по умолчанию
+            document.getElementById('captcha-container').style.display = 'none';
+            document.getElementById('captcha-error').style.display = 'none';
+
+            // Сбрасываем reCAPTCHA если она была инициализирована
+            if (window.recaptchaCreateWidget && typeof grecaptcha !== 'undefined') {
+                grecaptcha.reset(window.recaptchaCreateWidget);
+            }
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(23, 59, 0, 0);
+
+            document.getElementById('task-date').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('task-time').value = '23:59';
+            document.getElementById('task-date').min = new Date().toISOString().split('T')[0];
+
+            // Загружаем reCAPTCHA если нужно
+            setTimeout(loadRecaptchaIfNeeded, 500);
+
+            const modal = new bootstrap.Modal(document.getElementById('createTaskModal'));
+            modal.show();
+        }
+
+        // Модифицируем функцию createTask()
+        function createTask() {
+            const overdueCount = <?php echo $overdueCount; ?>;
+            let captchaResponse = null;
+
+            // Проверяем reCAPTCHA если есть просроченные задачи
+            if (overdueCount >= 3) {
+                captchaResponse = grecaptcha.getResponse(window.recaptchaCreateWidget);
+
+                if (!captchaResponse) {
+                    document.getElementById('captcha-error').style.display = 'block';
+                    return;
+                } else {
+                    document.getElementById('captcha-error').style.display = 'none';
+                }
+            }
+
+            const date = document.getElementById('task-date').value;
+            const time = document.getElementById('task-time').value;
+
+            if (!date || !time) {
+                alert('Пожалуйста, укажите дату и время выполнения');
+                return;
+            }
+
+            const timer = date + ' ' + time + ':00';
+            document.getElementById('task-timer').value = timer;
+
+            const formData = new FormData(document.getElementById('create-task-form'));
+
+            // Добавляем токен reCAPTCHA в formData если есть
+            if (captchaResponse) {
+                formData.append('g-recaptcha-response', captchaResponse);
+            }
+
+            const taskName = document.getElementById('task-name').value.trim();
+            const taskDescription = document.getElementById('task-description').value.trim();
+
+            if (!taskName) {
+                alert('Пожалуйста, введите название задачи');
+                return;
+            }
+
+            if (!taskDescription) {
+                alert('Пожалуйста, введите описание задачи');
+                return;
+            }
+
+            // Отключаем кнопку чтобы предотвратить повторные нажатия
+            const createBtn = document.getElementById('create-task-btn');
+            createBtn.disabled = true;
+            createBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Создание...';
+
+            fetch('/To-do-listAgressive/router.php?action=create_task', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('createTaskModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Ошибка создания задачи: ' + (data.message || 'Неизвестная ошибка'));
+                        // Сбрасываем reCAPTCHA если была ошибка
+                        if (overdueCount >= 3 && typeof grecaptcha !== 'undefined') {
+                            grecaptcha.reset(window.recaptchaCreateWidget);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка создания задачи');
+                })
+                .finally(() => {
+                    // Восстанавливаем кнопку
+                    createBtn.disabled = false;
+                    createBtn.innerHTML = 'Создать';
+                });
+        }
+    </script>
 </body>
